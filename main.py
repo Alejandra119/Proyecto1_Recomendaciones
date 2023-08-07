@@ -90,11 +90,18 @@ def peliculas_director(director: str):
     }
 
 # 7. Sistema de recomendaciones
-indices = pd.Series(datos.index, index=datos['title']).drop_duplicates()
+datos['title'] = datos['title'].fillna('').astype('str')
+datos['genres'] = datos['genres'].fillna('').astype('str')
+datos['companies'] = datos['companies'].fillna('')
+datos['companies'] = datos['companies'].fillna('').astype('str')
+
+datos['caracteristicas_comunes'] = datos['title'] + ' ' + datos['genres'] + ' ' + datos['companies']
+datos['caracteristicas_comunes'] = datos['caracteristicas_comunes'].str.lower()
 contar = CountVectorizer(stop_words='english', max_features=5000)
 count_matrix = contar.fit_transform(datos['caracteristicas_comunes'])
 modelo_k = NearestNeighbors(metric='cosine', algorithm='brute')
 modelo_k.fit(count_matrix)
+indices = pd.Series(datos.index, index=datos['title']).drop_duplicates()
 
 @app.get('/recomendaciones/{titulo}')
 def recomendaciones(titulo:str):
