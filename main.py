@@ -2,6 +2,8 @@ from typing import Union
 from fastapi import FastAPI
 import pandas as pd
 import numpy as np
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.neighbors import NearestNeighbors
 
 app=FastAPI()
 
@@ -86,3 +88,22 @@ def peliculas_director(director: str):
         'ganancia': ganancia
     }
 
+# 7. Sistema de recomendaciones
+indices = pd.Series(datos.index, index=datos['title']).drop_duplicates()
+contar = CountVectorizer(stop_words='english', max_features=5000)
+count_matrix = contar.fit_transform(datos['caracteristicas_comunes'])
+modelo_k = NearestNeighbors(metric='cosine', algorithm='brute')
+modelo_k.fit(count_matrix)
+
+@app.get('/recomendaciones/{titulo}')
+def recomendaciones(titulo:str):
+    if titulo not in datos['title'].values:
+        return 'La pelicula no se encuentra en el conjunto de la base de datos.'
+    else:
+        index = indices[titulo]
+
+        distances, indices_knn = modelo_k.kneighbors(count_matrix[index], n_neighbors=6)  
+
+        movie_indices = indices_knn[0][1:]  
+
+        return {'lista recomendada': datos['title'].iloc[movie_indices].tolist()}
