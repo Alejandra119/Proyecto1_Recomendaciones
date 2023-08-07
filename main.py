@@ -1,8 +1,8 @@
-from typing import Union
-from fastapi import FastAPI
 import pandas as pd
 import numpy as np
 import sklearn
+from typing import Union
+from fastapi import FastAPI
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.neighbors import NearestNeighbors
 
